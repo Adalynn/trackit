@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1066211650832",
+    "firebase_url": "https://pushit2-54e83.firebaseio.com",
+    "project_id": "pushit2-54e83",
+    "storage_bucket": "pushit2-54e83.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066211650832:android:a2e853289478905d",
+        "android_client_info": {
+          "package_name": "com.example.adalynn.pushit2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1066211650832-p1b5h74i62cncucvscspal4jai2ft113.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRuupWC3xvxW3u0A7au3gKcBIJJmAHV_E"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
