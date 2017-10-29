@@ -42,12 +42,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private BroadcastReceiver mRegistrationBroadcastReceiver;
-    private TextView txtRegId, txtMessage;
+//    private TextView txtRegId, txtMessage;
 
     boolean isFirstTime = true;
     public String httpAction= null;
     public String fbID = null;
     public String dbID = null;
+    public String ScreenUserData = null;
 
     ProgressDialog dialog;
     User user;
@@ -57,8 +58,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.e(TAG, "Firebase reg id: Programme Started");
-        txtRegId = (TextView) findViewById(R.id.txt_reg_id);
-        txtMessage = (TextView) findViewById(R.id.txt_push_message);
+//        txtRegId = (TextView) findViewById(R.id.txt_reg_id);
+//        txtMessage = (TextView) findViewById(R.id.txt_push_message);
 
 
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
@@ -78,8 +79,7 @@ public class MainActivity extends AppCompatActivity {
                     String message = intent.getStringExtra("message");
                     //Toast.makeText(getApplicationContext(), "PUSH_NOTIFICATION", Toast.LENGTH_LONG).show();
                     Toast.makeText(getApplicationContext(), "Push notification: " + message, Toast.LENGTH_LONG).show();
-
-                    txtMessage.setText(message);
+                    //txtMessage.setText(message);
                 }
             }
         };
@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (!isFirstTime) {
+
             Log.e(TAG, "Firebase reg fbid already set!");
             /* get dbid from shared prefrences and then request the data from php
             if shared prefrences dbid is null then it means this fbid is not saved in db yet
@@ -111,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
                     also store the dbid in prefrences
                 */
                 storeDbIdInPrefByFbId();
-                //getUserDataByDbId();
             }
 
         } else {
@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
     public void saveUserDataByFbId() {
         try {
             showLoading("saveuserdatabyfbid");
+            Log.e(TAG, "saveuserdatabyfbid");
             new HttpAsyncTask().execute("http://10.0.2.2/ecomm/landit/landit.php","saveuserdatabyfbid").get(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -194,30 +195,59 @@ public class MainActivity extends AppCompatActivity {
         if(httpAction == "getuserdatabydbid") {
             try {
                 JSONObject jsonObj = new JSONObject(result);
+                ScreenUserData = result;
                 Log.e(TAG, "Firebase data by dbid: " + result);
 //                String dbId = jsonObj.getJSONObject("data").getString("id");
                 hideLoading();
+                /*
+                    At this place we will surely have the dbid so get the user data by dbid
+                    if mobile number is empty in result show the box to add the number and emailid
+                    mobile number is a compulsory field
+                    @TODO : Goto next activity with data in string format
+                */
+                Log.e(TAG, "ScreenUserData : " + httpAction + " # " + ScreenUserData);
+                Intent intent = new Intent(this, HomeActivity.class);
+                //String message = "Sending some data to map class from contact class";
+                intent.putExtra("ScreenUserData",ScreenUserData);
+                startActivity(intent);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else if(httpAction == "getuserdatabyfbid") {
             try {
                 JSONObject jsonObj = new JSONObject(result);
+                ScreenUserData = result;
                 String dbId = jsonObj.getJSONObject("data").getString("id");
                 setDbIdInPref(dbId);
                 Log.e(TAG, "Firebase reg dbid now set in sf: " + dbId);
                 hideLoading();
+                /*
+                    @TODO : Goto next activity with data in string format
+                */
+                Log.e(TAG, "ScreenUserData " + httpAction + " # " + ScreenUserData);
+                Intent intent = new Intent(this, HomeActivity.class);
+                //String message = "Sending some data to map class from contact class";
+                intent.putExtra("ScreenUserData",ScreenUserData);
+                startActivity(intent);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else if(httpAction == "saveuserdatabyfbid") {
             try {
                 JSONObject jsonObj = new JSONObject(result);
-//                String dbId = jsonObj.getJSONObject("data").getString("id");
-//                setDbIdInPref(dbId);
-//                Log.e(TAG, "Firebase reg dbid now set in sf after saving in db: " + dbId);
-                Log.e(TAG, "Firebase reg dbid now set in sf after saving in db: ");
+                ScreenUserData = result;
+                boolean userInserted = jsonObj.getBoolean("user_inserted");
                 hideLoading();
+                if(userInserted) {
+                    /*
+                        @TODO : Goto next activity with data in string format
+                    */
+                    Log.e(TAG, "ScreenUserData " + httpAction + " # " + ScreenUserData);
+                    Intent intent = new Intent(this, HomeActivity.class);
+                    //String message = "Sending some data to map class from contact class";
+                    intent.putExtra("ScreenUserData",ScreenUserData);
+                    startActivity(intent);
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -236,7 +266,6 @@ public class MainActivity extends AppCompatActivity {
 
     public String getDbIdInPref() {
 
-        //SharedPreferences sharedpreferences = getSharedPreferences(Config.SHARED_PREF, Context.MODE_PRIVATE);
         SharedPreferences sharedpreferences = getApplicationContext().getSharedPreferences(Config.DB_SHARED_PREF, 0);
         String dbid = sharedpreferences.getString("dbid", null);
         if (!TextUtils.isEmpty(dbid)) {

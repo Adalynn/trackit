@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <LinearLayout
+        android:id="@+id/db1_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:paddingTop="15dp"
+            android:layout_weight="0"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:layout_weight="0"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+
+        <!-- Child linear layout with horizontal orientation -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dip"
+            android:orientation="horizontal"
+            android:background="#ffffff"
+            android:layout_weight="1"
+            android:gravity="center|bottom"
+            android:layout_marginTop="25dip">
+
+            <Button
+                android:id="@+id/show_contacts_btn"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:padding="15dip"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/show_contacts_button" />
+
+            <Button
+                android:id="@+id/test_btn"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:padding="15dip"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/test_button"
+                />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
