@@ -21,8 +21,9 @@ public class HomeActivity extends AppCompatActivity {
 
     public Button saveUserDetails;
     String ScreenUserData = null;
+    String dbId = null;
     private String TAG = HomeActivity.class.getSimpleName();
-
+    public Button showContact;
     public String head_text;
     public String sub_text;
 
@@ -37,7 +38,7 @@ public class HomeActivity extends AppCompatActivity {
         Log.e(TAG, "ScreenUserData Received User Data: " + ScreenUserData);
         try {
             JSONObject jsonObj = new JSONObject(ScreenUserData);
-            String dbId = jsonObj.getJSONObject("data").getString("id");
+            dbId = jsonObj.getJSONObject("data").getString("id");
             Log.e(TAG, "ScreenUserData Received User Data Id: " + dbId);
             String mobile = jsonObj.getJSONObject("data").getString("mobile");
             Log.e(TAG, "ScreenUserData Received User Data Mobile: " + mobile);
@@ -61,5 +62,27 @@ public class HomeActivity extends AppCompatActivity {
         sub_text = "Add your dude in the contact list and start tracking them at the same moment, this is going to be an amazing start!";
         TextView txtView2= (TextView)findViewById(R.id.textView2);
         txtView2.setText(sub_text);
+
+
+        /* Show Test Button */
+        this.showContact = (Button)this.findViewById(R.id.show_contacts_btn);
+        this.showContact.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                sendMessage(v);
+            }
+        });
+
+
+    }
+
+    /** Called when the user taps the Send button */
+    public void sendMessage(View view) {
+        Intent intent = new Intent(this, ContactListActivity.class);
+        String message = "Sending some data";
+        intent.putExtra("data", message);
+        intent.putExtra("dbId", dbId);
+        Log.e(TAG, "Starting ContactListActiviy with db id : " + dbId);
+        startActivity(intent);
     }
 }

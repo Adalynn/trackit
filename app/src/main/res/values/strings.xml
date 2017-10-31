@@ -9,5 +9,9 @@
     <string name="user_emailaddress">Email Address</string>
     <string name="user_mobilenumber">Mobile Number</string>
     <string name="user_saveuserdetailsbtn">Save Details</string>
+    <string name="title_activity_ani_map_view">Map</string>
+
+    <string name="google_maps_key">AIzaSyDf2SeupfYMH8r2wnJi86xxQylPQe4VizE</string>
+
 
 </resources>
