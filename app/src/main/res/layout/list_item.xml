@@ -4,13 +4,18 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="@dimen/activity_horizontal_margin">
-    <TextView
+    <!-- <TextView
         android:id="@+id/user_id"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="2dip"
+        android:textColor="@color/colorAccent" /> -->
+    <TextView
+        android:id="@+id/textstring"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="2dip"
         android:textColor="@color/colorAccent" />
-
     <TextView
         android:id="@+id/mobile_number"
         android:layout_width="wrap_content"

@@ -120,6 +120,7 @@ public class ContactListActivity extends AppCompatActivity {
                     JSONObject c = contacts.getJSONObject(i);
                     String contact_id = c.getString("contact_id");
                     String parent_id = c.getString("parent_id");
+                    String contact_name = c.getString("contact_name");
                     String contact_number = c.getString("contact_number");
                     String is_verified = c.getString("is_verified");
                     String latitude = c.getString("latitude");
@@ -129,10 +130,13 @@ public class ContactListActivity extends AppCompatActivity {
                     // adding each child node to HashMap key => value
                     contact.put("contact_id", contact_id);
                     contact.put("parent_id", parent_id);
+                    contact.put("contact_name", contact_name);
                     contact.put("contact_number", contact_number);
                     contact.put("is_verified", is_verified);
                     contact.put("latitude", latitude);
                     contact.put("longitude", longitude);
+                    contact.put("textstring", contact_id+"#"+contact_name);
+
 
                     // adding contact to contact list
                     contactList.add(contact);
@@ -145,8 +149,8 @@ public class ContactListActivity extends AppCompatActivity {
             //JSONArray contacts = jsonObj.getJSONArray("users");
 
             ListAdapter adapter = new SimpleAdapter(ContactListActivity.this, contactList,
-                    R.layout.list_item, new String[]{ "contact_id","contact_number"},
-                    new int[]{R.id.user_id, R.id.mobile_number});
+                    R.layout.list_item, new String[]{"textstring", "contact_number"},
+                    new int[]{R.id.textstring, R.id.mobile_number});
             lv.setAdapter(adapter);
             hideLoading();
         }

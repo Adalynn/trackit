@@ -3,13 +3,16 @@
     <string name="title_main_activity">Firebase Notifications</string>
     <string name="title_activity_second">SecondActivity</string>
     <string name="show_contacts_button">Track Contacts</string>
-    <string name="test_button">Add Contact</string>
+    <string name="add_contacts_button">Add Contact</string>
 
     <string name="user_formdetails">Enter the details below to start</string>
     <string name="user_emailaddress">Email Address</string>
     <string name="user_mobilenumber">Mobile Number</string>
     <string name="user_saveuserdetailsbtn">Save Details</string>
     <string name="title_activity_ani_map_view">Map</string>
+
+    <string name="contact_mobilenumber">Mobile Number</string>
+    <string name="contact_name">Name</string>
 
     <string name="google_maps_key">AIzaSyDf2SeupfYMH8r2wnJi86xxQylPQe4VizE</string>
 

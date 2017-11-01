@@ -55,13 +55,13 @@
                 android:text="@string/show_contacts_button" />
 
             <Button
-                android:id="@+id/test_btn"
+                android:id="@+id/add_contacts_button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:padding="15dip"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="@string/test_button"
+                android:text="@string/add_contacts_button"
                 />
 
         </LinearLayout>
