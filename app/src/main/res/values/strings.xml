@@ -13,8 +13,15 @@
 
     <string name="contact_mobilenumber">Mobile Number</string>
     <string name="contact_name">Name</string>
+    <string name="contact_verification_code">Enter Code</string>
 
     <string name="google_maps_key">AIzaSyDf2SeupfYMH8r2wnJi86xxQylPQe4VizE</string>
 
+
+
+    <string name="permission_send_sms">Send Text Sms permission is needed to send the verification code to your contact.</string>
+    <string name="ok">OK</string>
+    <string name="permision_send_sms_granted">Send Text SMS Permission has been granted.</string>
+    <string name="permissions_not_granted">Permissions were not granted.</string>
 
 </resources>

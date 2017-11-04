@@ -21,6 +21,9 @@ public class Config {
     public static final String SHARED_PREF = "ah_firebase";
     public static final String DB_SHARED_PREF = "dbid";
 
+    public static final String APP_NAME = "TrackIt";
+    public static final String APP_URL = "www.trackit.com";
+
     public static final String HTTP_API_URL = "http://10.0.2.2/ecomm/landit/landit.php";
 
 }

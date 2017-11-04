@@ -1,21 +1,31 @@
 package com.example.adalynn.pushit2.activity;
 
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.adalynn.pushit2.Manifest;
 import com.example.adalynn.pushit2.R;
 import com.example.adalynn.pushit2.app.Config;
 import com.example.adalynn.pushit2.util.HttpHandler;
@@ -38,6 +48,7 @@ public class HomeActivity extends AppCompatActivity {
     String ScreenUserData = null;
     public String httpAction= null;
     String dbId = null;
+    String user_mobile = null;
     private String TAG = HomeActivity.class.getSimpleName();
     public Button showContact;
     public Button addContact;
@@ -47,11 +58,23 @@ public class HomeActivity extends AppCompatActivity {
     private String contact_mobile_number = "";
     private String contact_name = "";
 
+    /**
+     * Id to identify a contacts permission request.
+     */
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 12345;
+    /**
+     * Root of the layout of this Activity.
+     */
+    private View mLayout;
+    private RelativeLayout home_layout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        home_layout = (RelativeLayout) findViewById(R.id.home_layout);
 
         Bundle extras = getIntent().getExtras();
         ScreenUserData = extras.getString("ScreenUserData");
@@ -61,11 +84,10 @@ public class HomeActivity extends AppCompatActivity {
             JSONObject jsonObj = new JSONObject(ScreenUserData);
             dbId = jsonObj.getJSONObject("data").getString("id");
             Log.e(TAG, "ScreenUserData Received User Data Id: " + dbId);
-            String mobile = jsonObj.getJSONObject("data").getString("mobile");
-            Log.e(TAG, "ScreenUserData Received User Data Mobile: " + mobile);
+            user_mobile = jsonObj.getJSONObject("data").getString("mobile");
+            Log.e(TAG, "ScreenUserData Received User Data Mobile: " + user_mobile);
 
-            if(mobile.isEmpty()) {
-                Log.e(TAG, "ScreenUserData emtpty mobile Received User Data Mobile: " + mobile);
+            if(user_mobile.isEmpty()) {
                 Intent intent = new Intent(this, SignupActivity.class);
                 intent.putExtra("ScreenUserData",ScreenUserData);
                 startActivity(intent);
@@ -189,6 +211,93 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //---sends an SMS message to another device---
+    private void sendSMS(String phoneNumber, String message)
+    {
+        Log.e(TAG, "sendSMS Called to send  : " + message + " on mobile number " + phoneNumber);
+        try {
+
+            PendingIntent sentPI;
+            String SENT = "SMS_SENT";
+            sentPI = PendingIntent.getBroadcast(this, 0,new Intent(SENT), 0);
+
+            SmsManager sms = SmsManager.getDefault();
+            sms.sendTextMessage(phoneNumber, null, message, null, null);
+            //sms.sendTextMessage(phoneNumber, null, message, sentPI, null);
+        } catch (Exception e){
+
+            Log.e(TAG, "sendSMS Called Exception : " + e.getMessage());
+            //e.getMessage() response => uid 10078 does not have android.permission.SEND_SMS
+            Toast.makeText(getApplicationContext(), "Could Not Send OTP. Try On Another Device", Toast.LENGTH_LONG).show();
+
+            return;
+        }
+
+
+
+        Log.e(TAG, "sendSMS Called to send came till end");
+    }
+
+
+    /**
+     * Requests the Sms permission.
+     * If the permission has been denied previously, a SnackBar will prompt the user to grant the
+     * permission, otherwise it is requested directly.
+     */
+    private void requestSmsPermission() {
+
+        Log.e(TAG, "Sms permission has NOT been granted. Requesting permission.");
+        // BEGIN_INCLUDE(send_sms_permission_request)
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,android.Manifest.permission.SEND_SMS)) {
+            // Provide an additional rationale to the user if the permission was not granted
+            // and the user would benefit from additional context for the use of the permission.
+            // For example if the user has previously denied the permission.
+            Log.e(TAG, "Displaying Sms permission rationale to provide additional context.");
+
+            Snackbar.make(home_layout, R.string.permission_send_sms,Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.ok, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            ActivityCompat.requestPermissions(HomeActivity.this,
+                                    new String[]{android.Manifest.permission.SEND_SMS},
+                                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+                        }
+                    }).show();
+        } else {
+            // Sms permission has not been granted yet. Request it directly.
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.SEND_SMS},
+                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+        }
+        // END_INCLUDE(send_sms_permission_request)
+    }
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if (requestCode == MY_PERMISSIONS_REQUEST_SEND_SMS) {
+            // BEGIN_INCLUDE(permission_result)
+            // Received permission result for Send Sms.
+            Log.e(TAG, "Received response for Send Sms permission request.");
+
+            // Check if the only required permission has been granted
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Send Sms permission has been granted, sms can be send now
+                Log.e(TAG, "Send Sms permission has now been granted.");
+                //Snackbar.make(mLayout, R.string.permision_send_sms_granted,Snackbar.LENGTH_SHORT).show();
+            } else {
+                Log.e(TAG, "Send Sms permission was NOT granted.");
+                //Snackbar.make(mLayout, R.string.permissions_not_granted,Snackbar.LENGTH_SHORT).show();
+
+            }
+            // END_INCLUDE(permission_result)
+
+        }
+    }
+
+
     /*
     * This function will add the user contacts in db
     * */
@@ -203,6 +312,43 @@ public class HomeActivity extends AppCompatActivity {
                 Log.e(TAG, "Add Contact Response contact_added : " + jsonObj.getString("contact_added"));
                 if(jsonObj.getString("contact_added") == "true"){
                     Toast.makeText(getApplicationContext(), "Contact Added Successfully", Toast.LENGTH_SHORT).show();
+
+                    // Send verification code to contact using sms
+                    //String send_sms_on = jsonObj.getString("contact_number");
+                    String send_sms_on = "5556";
+                    String verification_code = jsonObj.getString("verification_code");
+                    String app_name = Config.APP_NAME;
+                    String app_url = Config.APP_URL;
+                    String text_message = user_mobile + " want to connect with you on " + app_name;
+                    text_message += " send the verification code ";
+                    text_message += verification_code;
+                    text_message += " to the user for more info on " + app_name + " visit " + app_url;
+                    Log.e(TAG, "Message send to the user : " + text_message);
+                    //sendSMS(send_sms_on, text_message);
+
+                    /**
+                        Check for sms sending permission if granted then send sms else request for permission
+                    */
+                    if(Build.VERSION.SDK_INT >= 23) {
+                        Log.e(TAG, "Checkingfor the permissions  : "+ Build.VERSION.SDK_INT);
+                        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                            // Semd SMS permission has not been granted.
+                            Log.e(TAG, "Checkingfor the permissions not granted: "+ Build.VERSION.SDK_INT);
+                            requestSmsPermission();
+
+                        }
+//                        else {
+//                            // Send Sms permissions is already available, send sms.
+//                            Log.i(TAG,"CAMERA permission has already been granted. Displaying camera preview.");
+//                            sendSMS(send_sms_on, text_message);
+//                        }
+                    }
+//                    else {
+//                        // Send Sms Directly
+//                        sendSMS(send_sms_on, text_message);
+//                    }
+                    sendSMS(send_sms_on, text_message);
+
                 } else {
                     Toast.makeText(getApplicationContext(), "Contact Already Added", Toast.LENGTH_SHORT).show();
                 }
@@ -212,6 +358,9 @@ public class HomeActivity extends AppCompatActivity {
             hideLoading();
         }
     }
+
+
+
 
     class HomeHttpAsyncTask extends AsyncTask<String, String, String> {
 
