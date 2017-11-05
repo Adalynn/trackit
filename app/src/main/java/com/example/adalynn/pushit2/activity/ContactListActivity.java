@@ -47,7 +47,13 @@ public class ContactListActivity extends AppCompatActivity {
     private ListView lv;
     AlertDialog c_dialog;
 
-    public String pid,cid,contact_verification_code;
+    public String pid;
+    public String cid;
+    public String contact_verification_code;
+    public String entered_verification_code;
+
+    public String requested_user_latitude;
+    public String requested_user_longitude;
 
     private static final String TAG = ContactListActivity.class.getSimpleName();
     public static final String EXTRA_MESSAGE_FROM_MAP_VIEW = "Message Set in contactLsist activivty";
@@ -65,8 +71,11 @@ public class ContactListActivity extends AppCompatActivity {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                if(contactList.get(position).get("is_verified") == "1") {
-                    showMap(view, contactList.get(position).get("latitude"), contactList.get(position).get("longitude"));
+                requested_user_latitude = contactList.get(position).get("latitude");
+                requested_user_longitude = contactList.get(position).get("longitude");
+                if(contactList.get(position).get("is_verified").equals("1")) {
+                    //showMap(view, contactList.get(position).get("latitude"), contactList.get(position).get("longitude"));
+                    showMap(requested_user_latitude, requested_user_longitude);
                 } else {
                     requestForVerify(
                             contactList.get(position).get("contact_id"),
@@ -84,7 +93,7 @@ public class ContactListActivity extends AppCompatActivity {
     /**
      * Function used to request for the contact verification
      */
-    public void requestForVerify(String contact_id, String parent_id, String verifiy_code) {
+    public void requestForVerify(String contact_id, final String parent_id, String verifiy_code) {
 
         final EditText enter_verification_code = new EditText(this);
         enter_verification_code.setHint(R.string.contact_verification_code);
@@ -132,13 +141,16 @@ public class ContactListActivity extends AppCompatActivity {
             public void onClick(View v)
             {
                 Boolean wantToCloseDialog = false;
+                entered_verification_code = enter_verification_code.getText().toString();
                 //Do stuff, possibly set wantToCloseDialog to true then...
-
-
-                if(enter_verification_code.getText().toString() == contact_verification_code) {
-                    //updateIsVerified();
+                if(entered_verification_code.equals(contact_verification_code)) {
+                    /*
+                    * User entered verification code is what share to it's contact so we can update the isverfified
+                    * in db for the contact
+                    * */
+                    wantToCloseDialog = true;
+                    updateIsVerified();
                 } else {
-                    enter_verification_code.getText().toString();
                     //Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
                     Animation shake = AnimationUtils.loadAnimation(ContactListActivity.this, R.anim.shake);
                     enter_verification_code.startAnimation(shake);
@@ -160,7 +172,10 @@ public class ContactListActivity extends AppCompatActivity {
     }
 
     /** Called when the user taps the Send button */
-    public void showMap(View view, String latitude, String longitude) {
+    public void showMap(String latitude, String longitude) {
+
+        Log.e(TAG, "showMap Called " + latitude +"#"+ longitude);
+
         Intent intent = new Intent(this, AniMapView.class);
         String message = "Sending some data to map class from contact class";
         intent.putExtra("latitude",latitude);
@@ -181,6 +196,20 @@ public class ContactListActivity extends AppCompatActivity {
         if (dialog.isShowing()) {
             Log.e(TAG, "Firebase hiding loading image");
             dialog.dismiss();
+        }
+    }
+
+    public void updateIsVerified(){
+        Log.e(TAG, "Updating isVerified for the conatct id : " + cid + " of parent id " + pid);
+        try {
+            showLoading("while we verifiy the code");
+            new HttpAsyncTask().execute(Config.HTTP_API_URL,"updateisverified").get(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
         }
     }
 
@@ -233,7 +262,7 @@ public class ContactListActivity extends AppCompatActivity {
                     contact.put("is_verified", is_verified);
                     contact.put("latitude", latitude);
                     contact.put("longitude", longitude);
-                    contact.put("textstring", contact_id+"#"+contact_name);
+                    contact.put("textstring", contact_id+"#"+contact_name+"#"+is_verified);
                     contact.put("verification_code", verification_code);
 
 
@@ -252,6 +281,27 @@ public class ContactListActivity extends AppCompatActivity {
                     new int[]{R.id.textstring, R.id.mobile_number});
             lv.setAdapter(adapter);
             hideLoading();
+        } else if (httpAction == "updateisverified") {
+            hideLoading();
+            try{
+                JSONObject jsonObj = new JSONObject(result);
+                if(jsonObj.getString("user_updated")== "true"){
+                    Toast.makeText(
+                            getApplicationContext(), "Verfication Code Update",
+                            Toast.LENGTH_LONG
+                    ).show();
+                    showMap(requested_user_latitude, requested_user_longitude);
+
+                } else if(jsonObj.getString("user_updated") == "false") {
+                    Toast.makeText(
+                            getApplicationContext(), "Invalid Verfication Code",
+                            Toast.LENGTH_LONG
+                    ).show();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -272,6 +322,10 @@ public class ContactListActivity extends AppCompatActivity {
 
             if(params[1] == "getusercontactsbydbid") {
                 url += "?action="+params[1]+"&dbid="+dbId;
+            }
+
+            if(params[1] == "updateisverified") {
+                url += "?action="+params[1]+"&cid="+cid+"&pid="+pid;
             }
 
             Log.e(TAG, "Firebase req url: " + url);
