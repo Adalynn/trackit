@@ -76,6 +76,7 @@ public class HomeActivity extends AppCompatActivity {
 
         home_layout = (RelativeLayout) findViewById(R.id.home_layout);
 
+
         Bundle extras = getIntent().getExtras();
         ScreenUserData = extras.getString("ScreenUserData");
 
@@ -145,7 +146,7 @@ public class HomeActivity extends AppCompatActivity {
     /** Called to add the contact */
     public void addContact(View view) {
 
-        Log.e(TAG, "addContact Called");
+        Log.e(TAG, "addContact Callaed");
 
         final EditText mobile_number = new EditText(this);
         mobile_number.setHint(R.string.contact_mobilenumber);

@@ -4,11 +4,14 @@
     <string name="title_activity_second">SecondActivity</string>
     <string name="show_contacts_button">Track Contacts</string>
     <string name="add_contacts_button">Add Contact</string>
+    <string name="no_contacts_found">No contacts found</string>
+
+
 
     <string name="user_formdetails">Enter the details below to start</string>
     <string name="user_emailaddress">Email Address</string>
     <string name="user_mobilenumber">Mobile Number</string>
-    <string name="user_saveuserdetailsbtn">Save Details</string>
+    <string name="user_saveuserdetailsbtn">Next</string>
     <string name="title_activity_ani_map_view">Map</string>
 
     <string name="contact_mobilenumber">Mobile Number</string>
@@ -18,10 +21,13 @@
     <string name="google_maps_key">AIzaSyDf2SeupfYMH8r2wnJi86xxQylPQe4VizE</string>
 
 
-
     <string name="permission_send_sms">Send Text Sms permission is needed to send the verification code to your contact.</string>
     <string name="ok">OK</string>
+
+
+    <string name="permission_title">Below Permissions Required.</string>
     <string name="permision_send_sms_granted">Send Text SMS Permission has been granted.</string>
     <string name="permissions_not_granted">Permissions were not granted.</string>
+    <string name="title_activity_common_util">CommonUtil</string>
 
 </resources>

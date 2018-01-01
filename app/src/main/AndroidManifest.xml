@@ -9,8 +9,10 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.SEND_SMS" />
-
-
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
 
     <application
         android:allowBackup="true"
@@ -58,7 +60,19 @@
 
         <activity
             android:name=".activity.AniMapView"
-            android:label="@string/title_activity_ani_map_view"></activity>
+            android:label="@string/title_activity_ani_map_view" />
+        <activity
+            android:name=".app.CommonUtil"
+            android:label="@string/title_activity_common_util"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+
+
+        <receiver android:name=".util.MySMSBroadcastReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

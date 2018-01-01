@@ -1,12 +1,19 @@
 package com.example.adalynn.pushit2.activity;
 
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +25,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
@@ -55,13 +63,26 @@ public class ContactListActivity extends AppCompatActivity {
     public String requested_user_latitude;
     public String requested_user_longitude;
 
+    public Button addContact;
+
     private static final String TAG = ContactListActivity.class.getSimpleName();
     public static final String EXTRA_MESSAGE_FROM_MAP_VIEW = "Message Set in contactLsist activivty";
+
+    /**
+     * Id to identify a contacts permission request.
+     */
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 12345;
+    private String contact_mobile_number = "";
+    private String contact_name = "";
+    String user_mobile = null;
+    private LinearLayout contact_list_layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_list);
+
+        contact_list_layout = (LinearLayout) findViewById(R.id.contact_list_layout);
 
         Bundle extras = getIntent().getExtras();
         dbId = extras.getString("dbId");
@@ -88,6 +109,77 @@ public class ContactListActivity extends AppCompatActivity {
             }
         });
         Log.e(TAG, "LIST VIEW " + UserContactsListData);
+        lv.setEmptyView(findViewById(R.id.empty_list));
+
+        this.addContact = (Button)this.findViewById(R.id.add_contacts_button);
+        this.addContact.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                addContact(v);
+                //Log.e(TAG, "ADD CONTACTS BUTTON CLICKED!");
+            }
+        });
+
+    }
+
+
+    /** Called to add the contact */
+    public void addContact(View view) {
+
+        Log.e(TAG, "addContact Callaed");
+
+        final EditText mobile_number = new EditText(this);
+        mobile_number.setHint(R.string.contact_mobilenumber);
+        mobile_number.setInputType(InputType.TYPE_CLASS_PHONE);
+
+        final EditText name = new EditText(this);
+        name.setHint(R.string.contact_name);
+        name.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add Contact");
+
+        builder.setMessage("You can track user after code verification!");
+
+        LinearLayout ll=new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+        ll.addView(mobile_number);
+        ll.addView(name);
+        builder.setView(ll);
+
+        // Set up the buttons
+        builder.setPositiveButton("Add Contact", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                contact_mobile_number = mobile_number.getText().toString();
+                contact_name = name.getText().toString();
+                Log.e(TAG, "Posted details " + contact_mobile_number + "#" + contact_name + "#" + dbId);
+                insert();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    public void insert()
+    {
+        try {
+            showLoading("Please wait while we save the contact.");
+            new ContactListActivity.HttpAsyncTask().execute(Config.HTTP_API_URL,"addcontacts").get(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -237,37 +329,43 @@ public class ContactListActivity extends AppCompatActivity {
         if(httpAction == "getusercontactsbydbid") {
             UserContactsListData = result;
 
-            Log.e(TAG, "User Contact List  : " + UserContactsListData);
+            Log.e(TAG, "User Contact List1  : " + UserContactsListData);
             try {
                 JSONObject jsonObj = new JSONObject(UserContactsListData);
-                JSONArray contacts = jsonObj.getJSONArray("data");
-                for (int i = 0; i < contacts.length(); i++) {
+                Log.e(TAG, "User Contact Lists 2  : " + UserContactsListData);
+                //String id = jsonObj.getJSONObject("data").getString("id");
+                String total_contacts = jsonObj.getString("total_contacts");
+                Log.e(TAG, "Count of users contact list  : " + total_contacts);
+                if(total_contacts.equals("0")) {
+                } else {
+                    JSONArray contacts = jsonObj.getJSONArray("data");
+                    for (int i = 0; i < contacts.length(); i++) {
 
-                    JSONObject c = contacts.getJSONObject(i);
-                    String contact_id = c.getString("contact_id");
-                    String parent_id = c.getString("parent_id");
-                    String contact_name = c.getString("contact_name");
-                    String contact_number = c.getString("contact_number");
-                    String is_verified = c.getString("is_verified");
-                    String latitude = c.getString("latitude");
-                    String longitude = c.getString("longitude");
-                    String verification_code = c.getString("verification_code");
+                        JSONObject c = contacts.getJSONObject(i);
+                        String contact_id = c.getString("contact_id");
+                        String parent_id = c.getString("parent_id");
+                        String contact_name = c.getString("contact_name");
+                        String contact_number = c.getString("contact_number");
+                        String is_verified = c.getString("is_verified");
+                        String latitude = c.getString("latitude");
+                        String longitude = c.getString("longitude");
+                        String verification_code = c.getString("verification_code");
 
-                    HashMap<String, String> contact = new HashMap<>();
-                    // adding each child node to HashMap key => value
-                    contact.put("contact_id", contact_id);
-                    contact.put("parent_id", parent_id);
-                    contact.put("contact_name", contact_name);
-                    contact.put("contact_number", contact_number);
-                    contact.put("is_verified", is_verified);
-                    contact.put("latitude", latitude);
-                    contact.put("longitude", longitude);
-                    contact.put("textstring", contact_id+"#"+contact_name+"#"+is_verified);
-                    contact.put("verification_code", verification_code);
+                        HashMap<String, String> contact = new HashMap<>();
+                        // adding each child node to HashMap key => value
+                        contact.put("contact_id", contact_id);
+                        contact.put("parent_id", parent_id);
+                        contact.put("contact_name", contact_name);
+                        contact.put("contact_number", contact_number);
+                        contact.put("is_verified", is_verified);
+                        contact.put("latitude", latitude);
+                        contact.put("longitude", longitude);
+                        contact.put("textstring", contact_id+"#"+contact_name+"#"+is_verified);
+                        contact.put("verification_code", verification_code);
 
-
-                    // adding contact to contact list
-                    contactList.add(contact);
+                        // adding contact to contact list
+                        contactList.add(contact);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -302,7 +400,64 @@ public class ContactListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+        } else if(httpAction == "addcontacts") {
+
+        Log.e(TAG, "Add Contact Response  : " + result);
+
+        try {
+            JSONObject jsonObj = new JSONObject(result);
+            Log.e(TAG, "Add Contact Response contact_added : " + jsonObj.getString("contact_added"));
+            if(jsonObj.getString("contact_added") == "true"){
+                Toast.makeText(getApplicationContext(), "Contact Added Successfully", Toast.LENGTH_SHORT).show();
+
+                // Send verification code to contact using sms
+                //String send_sms_on = jsonObj.getString("contact_number");
+                String send_sms_on = "5556";
+                String verification_code = jsonObj.getString("verification_code");
+                String app_name = Config.APP_NAME;
+                String app_url = Config.APP_URL;
+                String text_message = user_mobile + " want to connect with you on " + app_name;
+                text_message += " send the verification code ";
+                text_message += verification_code;
+                text_message += " to the user for more info on " + app_name + " visit " + app_url;
+                Log.e(TAG, "Message send to the user : " + text_message);
+
+
+                /**
+                 Check for sms sending permission if granted then send sms else request for permission
+                 */
+                if(Build.VERSION.SDK_INT >= 23) {
+                    Log.e(TAG, "Checkingfor the permissions  : "+ Build.VERSION.SDK_INT);
+                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                        // Semd SMS permission has not been granted.
+                        Log.e(TAG, "Checkingfor the permissions not granted: "+ Build.VERSION.SDK_INT);
+                        requestSmsPermission();
+                    }
+
+                }
+                sendSMS(send_sms_on, text_message);
+
+                // Refreshing the same activity after adding the contact
+//                Intent refresh = new Intent(this, ContactListActivity.class);
+//                startActivity(refresh);//Start the same Activity
+//                finish(); //finish Activity.
+
+                Intent refresh = new Intent(this, ContactListActivity.class);
+                String message = "Sending some data";
+                refresh.putExtra("data", message);
+                refresh.putExtra("dbId", dbId);
+                startActivity(refresh);
+                finish(); //finish Activity.
+
+
+            } else {
+                Toast.makeText(getApplicationContext(), "Contact Already Added", Toast.LENGTH_SHORT).show();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+        hideLoading();
+    }
     }
 
     class HttpAsyncTask extends AsyncTask<String, String, String> {
@@ -328,6 +483,11 @@ public class ContactListActivity extends AppCompatActivity {
                 url += "?action="+params[1]+"&cid="+cid+"&pid="+pid;
             }
 
+            if(params[1] == "addcontacts") {
+                url += "?action="+params[1]+"&dbid="+dbId+"&contact_number="+contact_mobile_number+"&contact_name="+contact_name;
+            }
+
+
             Log.e(TAG, "Firebase req url: " + url);
 
             String jsonStr = sh.makeServiceCall(url);
@@ -342,6 +502,88 @@ public class ContactListActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             ReturnThreadResult(result);
+        }
+    }
+
+
+    //---sends an SMS message to another device---
+    private void sendSMS(String phoneNumber, String message)
+    {
+        Log.e(TAG, "send SMS Called to send  : " + message + " on mobile number " + phoneNumber);
+        try {
+
+            PendingIntent sentPI;
+            String SENT = "SMS_SENT";
+            sentPI = PendingIntent.getBroadcast(this, 0,new Intent(SENT), 0);
+
+            SmsManager sms = SmsManager.getDefault();
+            sms.sendTextMessage(phoneNumber, null, message, null, null);
+            //sms.sendTextMessage(phoneNumber, null, message, sentPI, null);
+        } catch (Exception e){
+
+            Log.e(TAG, "send SMS Called Exception : " + e.getMessage());
+            //e.getMessage() response => uid 10078 does not have android.permission.SEND_SMS
+            Toast.makeText(getApplicationContext(), "Could Not Send OTP. Try On Another Device", Toast.LENGTH_LONG).show();
+
+            return;
+        }
+    }
+
+    /**
+     * Requests the Sms permission.
+     * If the permission has been denied previously, a SnackBar will prompt the user to grant the
+     * permission, otherwise it is requested directly.
+     */
+    private void requestSmsPermission() {
+
+        Log.e(TAG, "Sms permission has NOT been granted. Requesting permission.");
+        // BEGIN_INCLUDE(send_sms_permission_request)
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,android.Manifest.permission.SEND_SMS)) {
+            // Provide an additional rationale to the user if the permission was not granted
+            // and the user would benefit from additional context for the use of the permission.
+            // For example if the user has previously denied the permission.
+            Log.e(TAG, "Displaying Sms permission rationale to provide additional context.");
+
+            Snackbar.make(contact_list_layout, R.string.permission_send_sms,Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.ok, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            ActivityCompat.requestPermissions(ContactListActivity.this,
+                                    new String[]{android.Manifest.permission.SEND_SMS},
+                                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+                        }
+                    }).show();
+        } else {
+            // Sms permission has not been granted yet. Request it directly.
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.SEND_SMS},
+                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+        }
+        // END_INCLUDE(send_sms_permission_request)
+    }
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if (requestCode == MY_PERMISSIONS_REQUEST_SEND_SMS) {
+            // BEGIN_INCLUDE(permission_result)
+            // Received permission result for Send Sms.
+            Log.e(TAG, "Received response for Send Sms permission request.");
+
+            // Check if the only required permission has been granted
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Send Sms permission has been granted, sms can be send now
+                Log.e(TAG, "Send Sms permission has now been granted.");
+                //Snackbar.make(mLayout, R.string.permision_send_sms_granted,Snackbar.LENGTH_SHORT).show();
+            } else {
+                Log.e(TAG, "Send Sms permission was NOT granted.");
+                //Snackbar.make(mLayout, R.string.permissions_not_granted,Snackbar.LENGTH_SHORT).show();
+
+            }
+            // END_INCLUDE(permission_result)
+
         }
     }
 
