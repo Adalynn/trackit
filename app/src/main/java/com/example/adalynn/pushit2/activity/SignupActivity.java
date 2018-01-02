@@ -88,7 +88,7 @@ public class SignupActivity extends AppCompatActivity {
         common_util = new CommonUtil();
 
         Bundle extras = getIntent().getExtras();
-        action= extras.getString("sign_up_new_user");
+        action= extras.getString("action");
 
         Log.e(TAG, "SignupActivity called with action " + action);
         Log.e(TAG, "Build Version Found : " + Build.VERSION.SDK_INT);
@@ -175,7 +175,7 @@ public class SignupActivity extends AppCompatActivity {
 //        }
 //    }
 
-    public void updateIsVerified(){
+    public void updateUserVerification(){
         Log.e(TAG, "Updating isVerified for the user");
         try {
             showLoading("Please wait while we verifiy the code.");
@@ -292,6 +292,7 @@ public class SignupActivity extends AppCompatActivity {
 
             try{
                 JSONObject jsonObj = new JSONObject(result);
+                ScreenUserData = result;
                 if(jsonObj.getString("user_updated")== "true"){
                     Toast.makeText(
                             getApplicationContext(), "Verfication Code Update",
@@ -316,9 +317,10 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     public void goToHomeActivity() {
-        Log.e(TAG, "goToHomeActivity Called");
+        Log.e(TAG, "goToHomeActivity Called" + ScreenUserData);
         Intent intent = new Intent(this, HomeActivity.class);
         //intent.putExtra("action","sign_up_new_user");
+        intent.putExtra("ScreenUserData",ScreenUserData);
         startActivity(intent);
     }
 
@@ -453,7 +455,7 @@ public class SignupActivity extends AppCompatActivity {
                     * in db for the contact
                     * */
                     wantToCloseDialog = true;
-                    updateIsVerified();
+                    updateUserVerification();
                 } else {
                     //Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
                     Animation shake = AnimationUtils.loadAnimation(SignupActivity.this, R.anim.shake);

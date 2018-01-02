@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public String fbID = null;
     public int dbID;
     public String ScreenUserData = null;
+    String is_verified = null;
     CommonUtil common_util;
     ProgressDialog dialog;
     User user;
@@ -452,11 +453,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     mobile number is a compulsory field
                     @TODO : Goto next activity with data in string format
                 */
-                Log.e(TAG, "ScreenUserData : " + httpAction + " # " + ScreenUserData);
-                Intent intent = new Intent(this, HomeActivity.class);
-                //String message = "Sending some data to map class from contact class";
-                intent.putExtra("ScreenUserData",ScreenUserData);
-                startActivity(intent);
+
+                is_verified = jsonObj.getJSONObject("data").getString("is_verified");
+                if(is_verified.equals("0")) {
+                    goToSignupActivity();
+                } else {
+                    Intent intent = new Intent(this, HomeActivity.class);
+                    intent.putExtra("ScreenUserData",ScreenUserData);
+                    startActivity(intent);
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
