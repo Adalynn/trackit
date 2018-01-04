@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         dbID = common_util.getDbIdInPref(getApplicationContext());
 
         if (dbID == 0) {
-            Log.e(TAG, "DBID is 0 going to signin new user");
+            Log.e(TAG, "dbID is 0 going to signin new user");
             /*
             * User is not registered yet going to save the user.
             * First check if app has the permission to read the phone state or not
@@ -119,11 +119,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 goToSignupActivity();
             }
         } else {
-            Log.e(TAG, "DBID is " + dbID + " user is already registered going to user home screen");
+            Log.e(TAG, "dbID is " + dbID + " user is already registered going to user home screen");
             /*
             * Get db id verification status if verified than go to home screen else
             * */
-            showLoading("DBID FOUND!" + dbID);
+            showLoading(Config.WAIT_STR_MSG);
 
             /*
             * From here get the user data from db now using dbid
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 Log.e(TAG, "User is coming nth time not a new user fbid already set" + "SDK_INT " + Build.VERSION.SDK_INT);
 
                 String dbid = getDbIdInPref();
-                Log.e(TAG, "DBID " + dbid);
+                Log.e(TAG, "dbID " + dbid);
                 if(Build.VERSION.SDK_INT >= 23) {
                     CommonUtil common_util = new CommonUtil();
                     if(!common_util.hasPermission(this, Config.READ_PHONE_STATE_PERMISSION)){

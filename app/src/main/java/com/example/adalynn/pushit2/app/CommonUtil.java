@@ -48,11 +48,12 @@ public class CommonUtil extends AppCompatActivity {
     }
 
     public int getDbIdInPref(Context c) {
-
         Log.e(TAG, "getDbIdInPref Called");
         try{
             SharedPreferences sharedpreferences = c.getSharedPreferences(Config.DB_SHARED_PREF, 0);
-            return sharedpreferences.getInt("dbid", MODE_PRIVATE);
+            int dbID = sharedpreferences.getInt("dbid", MODE_PRIVATE);
+            Log.e(TAG, "Found dbID " + dbID);
+            return dbID;
         } catch (Exception e){
             Log.e(TAG, "getDbIdInPref Exception " + e.getMessage());
             return 0;
