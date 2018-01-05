@@ -26,7 +26,7 @@ public class Config {
 
     public static final String WAIT_STR_MSG = "Please wait";
 
-    public static final int MAX_CONTACTS_LIMIT = 50;
+    public static final int MAX_CONTACTS_LIMIT = 5;
 
     public static final String HTTP_API_URL = "http://10.0.2.2/ecomm/landit/landit.php";
     //public static final String HTTP_API_URL = "http://kotlinclasses.org/ecomm/landit/landit.php";

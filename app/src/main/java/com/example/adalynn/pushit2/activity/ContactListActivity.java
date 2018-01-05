@@ -30,6 +30,7 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.example.adalynn.pushit2.R;
+import com.example.adalynn.pushit2.app.CommonUtil;
 import com.example.adalynn.pushit2.app.Config;
 import com.example.adalynn.pushit2.util.HttpHandler;
 
@@ -67,7 +68,7 @@ public class ContactListActivity extends AppCompatActivity {
     public int total_contacts = 0;
     private static final String TAG = ContactListActivity.class.getSimpleName();
     public static final String EXTRA_MESSAGE_FROM_MAP_VIEW = "Message Set in contactLsist activivty";
-
+    CommonUtil common_util;
     /**
      * Id to identify a contacts permission request.
      */
@@ -81,6 +82,8 @@ public class ContactListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_list);
+
+        common_util = new CommonUtil();
 
         contact_list_layout = (LinearLayout) findViewById(R.id.contact_list_layout);
 
@@ -119,30 +122,14 @@ public class ContactListActivity extends AppCompatActivity {
 
                 if(total_contacts >= Config.MAX_CONTACTS_LIMIT) {
                     Log.e(TAG, "MAX CONTACT LIMIT REACHED!");
-                    addMaxContactAddedAlert(v);
+                    common_util.addMaxContactAddedAlert(v, ContactListActivity.this);
+                    //addMaxContactAddedAlert(v);
                 } else {
                     addContact(v);
                 }
             }
         });
 
-    }
-
-    /** Called to add the contact */
-    public void addMaxContactAddedAlert(View view) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add Contact info");
-        builder.setMessage("You can add maximum "+Config.MAX_CONTACTS_LIMIT+" contact to track their location, if you want to add new contact you can try with deleting some existing ones.");
-
-        // Set up the buttons
-        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-            }
-        });
-
-        builder.show();
     }
 
 
