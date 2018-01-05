@@ -2,6 +2,7 @@ package com.example.adalynn.pushit2.activity;
 
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 
 import com.example.adalynn.pushit2.Manifest;
 import com.example.adalynn.pushit2.R;
+import com.example.adalynn.pushit2.app.CommonUtil;
 import com.example.adalynn.pushit2.app.Config;
 import com.example.adalynn.pushit2.util.HttpHandler;
 
@@ -54,9 +56,11 @@ public class HomeActivity extends AppCompatActivity {
     public Button addContact;
     public String head_text;
     public String sub_text;
-
+    public int total_contacts = 0;
     private String contact_mobile_number = "";
     private String contact_name = "";
+    private boolean request_processed = false;
+    CommonUtil common_util;
 
     /**
      * Id to identify a contacts permission request.
@@ -73,6 +77,8 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        common_util = new CommonUtil();
 
         home_layout = (RelativeLayout) findViewById(R.id.home_layout);
 
@@ -121,7 +127,18 @@ public class HomeActivity extends AppCompatActivity {
         this.addContact.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                addContact(v);
+
+                getUserContactsCount();
+                while(!request_processed){
+                }
+                Log.e(TAG, "Total contacts after while loop : " + total_contacts);
+                if(total_contacts >= Config.MAX_CONTACTS_LIMIT) {
+                    hideLoading();
+                    common_util.addMaxContactAddedAlert(v, HomeActivity.this);
+                } else {
+                    addContact(v);
+                }
+                //addContact(v);
             }
         });
 
@@ -143,6 +160,18 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    public void getUserContactsCount() {
+        try {
+            showLoading(Config.WAIT_STR_MSG);
+            new HomeHttpAsyncTask().execute(Config.HTTP_API_URL,"getcontactscount").get(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
     /** Called to add the contact */
     public void addContact(View view) {
 
@@ -357,6 +386,8 @@ public class HomeActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             hideLoading();
+        } else if(httpAction == "getcontactscount") {
+            hideLoading();
         }
     }
 
@@ -383,6 +414,9 @@ public class HomeActivity extends AppCompatActivity {
                 url += "?action="+params[1]+"&dbid="+dbId+"&contact_number="+contact_mobile_number+"&contact_name="+contact_name;
             }
 
+            if(params[1] == "getcontactscount") {
+                url += "?action="+params[1]+"&dbid="+dbId;
+            }
 
             //Log.e(TAG, "Posted details " + contact_mobile_number + "#" + contact_name + "#" + dbId);
             Log.e(TAG, "Firebase req url: " + url);
@@ -390,6 +424,17 @@ public class HomeActivity extends AppCompatActivity {
             String jsonStr = sh.makeServiceCall(url);
             if (jsonStr != null) {
                 Log.e(TAG, "Firebase Response from url for action " + params[1] + ": " + jsonStr);
+
+                if(params[1] == "getcontactscount") {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        total_contacts = jsonObj.getInt("users_contact_count");
+                        request_processed =true;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 return jsonStr;
             }
             // Log.e(TAG, "Response from url: " + jsonStr);
