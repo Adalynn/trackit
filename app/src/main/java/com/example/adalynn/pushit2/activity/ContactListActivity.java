@@ -64,7 +64,7 @@ public class ContactListActivity extends AppCompatActivity {
     public String requested_user_longitude;
 
     public Button addContact;
-
+    public int total_contacts = 0;
     private static final String TAG = ContactListActivity.class.getSimpleName();
     public static final String EXTRA_MESSAGE_FROM_MAP_VIEW = "Message Set in contactLsist activivty";
 
@@ -115,11 +115,34 @@ public class ContactListActivity extends AppCompatActivity {
         this.addContact.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                addContact(v);
                 //Log.e(TAG, "ADD CONTACTS BUTTON CLICKED!");
+
+                if(total_contacts >= Config.MAX_CONTACTS_LIMIT) {
+                    Log.e(TAG, "MAX CONTACT LIMIT REACHED!");
+                    addMaxContactAddedAlert(v);
+                } else {
+                    addContact(v);
+                }
             }
         });
 
+    }
+
+    /** Called to add the contact */
+    public void addMaxContactAddedAlert(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add Contact info");
+        builder.setMessage("You can add maximum "+Config.MAX_CONTACTS_LIMIT+" contact to track their location, if you want to add new contact you can try with deleting some existing ones.");
+
+        // Set up the buttons
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        builder.show();
     }
 
 
@@ -334,9 +357,9 @@ public class ContactListActivity extends AppCompatActivity {
                 JSONObject jsonObj = new JSONObject(UserContactsListData);
                 Log.e(TAG, "User Contact Lists 2  : " + UserContactsListData);
                 //String id = jsonObj.getJSONObject("data").getString("id");
-                String total_contacts = jsonObj.getString("total_contacts");
+                total_contacts = jsonObj.getInt("total_contacts");
                 Log.e(TAG, "Count of users contact list  : " + total_contacts);
-                if(total_contacts.equals("0")) {
+                if(total_contacts == 0) {
                 } else {
                     JSONArray contacts = jsonObj.getJSONArray("data");
                     for (int i = 0; i < contacts.length(); i++) {
@@ -437,10 +460,7 @@ public class ContactListActivity extends AppCompatActivity {
                 }
                 sendSMS(send_sms_on, text_message);
 
-                // Refreshing the same activity after adding the contact
-//                Intent refresh = new Intent(this, ContactListActivity.class);
-//                startActivity(refresh);//Start the same Activity
-//                finish(); //finish Activity.
+                total_contacts = total_contacts+1;
 
                 Intent refresh = new Intent(this, ContactListActivity.class);
                 String message = "Sending some data";
