@@ -18,6 +18,7 @@ public class AniMapView extends AppCompatActivity implements OnMapReadyCallback 
     //private GoogleMap mMap;
     public double latitude;
     public double longitute;
+    public String contact_number;
     public static final String EXTRA_MESSAGE_MAP_VIEW = "Message Set in contactLsist activivty";
 
     @Override
@@ -32,7 +33,7 @@ public class AniMapView extends AppCompatActivity implements OnMapReadyCallback 
         Bundle extras = getIntent().getExtras();
         latitude = Double.parseDouble(extras.getString("latitude"));
         longitute = Double.parseDouble(extras.getString("longitute"));
-
+        contact_number = extras.getString("contact_number");
         Toast.makeText(getApplicationContext(), " Latitude  : " + latitude + " Longitude : " + longitute, Toast.LENGTH_LONG).show();
     }
 
@@ -53,7 +54,8 @@ public class AniMapView extends AppCompatActivity implements OnMapReadyCallback 
         // Add a marker in Sydney and move the camera
         //LatLng sydney = new LatLng(-34, 151);
         LatLng sydney = new LatLng(latitude, longitute);
-        googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        googleMap.addMarker(new MarkerOptions().position(sydney).title(contact_number));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        googleMap.setMaxZoomPreference(6);
     }
 }

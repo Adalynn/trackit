@@ -65,6 +65,7 @@ public class ContactListActivity extends AppCompatActivity {
 
     public String requested_user_latitude;
     public String requested_user_longitude;
+    public String requested_contact_number;
 
     public Button addContact;
     public int total_contacts = 0;
@@ -99,9 +100,9 @@ public class ContactListActivity extends AppCompatActivity {
                                     int position, long id) {
                 requested_user_latitude = contactList.get(position).get("latitude");
                 requested_user_longitude = contactList.get(position).get("longitude");
+                requested_contact_number = contactList.get(position).get("contact_number");
                 if(contactList.get(position).get("is_verified").equals("1")) {
-                    //showMap(view, contactList.get(position).get("latitude"), contactList.get(position).get("longitude"));
-                    showMap(requested_user_latitude, requested_user_longitude);
+                    showMap(requested_user_latitude, requested_user_longitude, requested_contact_number);
                 } else {
                     requestForVerify(
                             contactList.get(position).get("contact_id"),
@@ -375,7 +376,7 @@ public class ContactListActivity extends AppCompatActivity {
     }
 
     /** Called when the user taps the Send button */
-    public void showMap(String latitude, String longitude) {
+    public void showMap(String latitude, String longitude, String contact_number) {
 
         Log.e(TAG, "showMap Called " + latitude +"#"+ longitude);
 
@@ -383,6 +384,7 @@ public class ContactListActivity extends AppCompatActivity {
         String message = "Sending some data to map class from contact class";
         intent.putExtra("latitude",latitude);
         intent.putExtra("longitute",longitude);
+        intent.putExtra("contact_number",contact_number);
         intent.putExtra(EXTRA_MESSAGE_FROM_MAP_VIEW, message);
         startActivity(intent);
     }
@@ -500,7 +502,7 @@ public class ContactListActivity extends AppCompatActivity {
                             getApplicationContext(), "Verfication Code Update",
                             Toast.LENGTH_LONG
                     ).show();
-                    showMap(requested_user_latitude, requested_user_longitude);
+                    showMap(requested_user_latitude, requested_user_longitude, requested_contact_number);
 
                 } else if(jsonObj.getString("user_updated") == "false") {
                     Toast.makeText(
