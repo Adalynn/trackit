@@ -23,9 +23,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
@@ -39,7 +37,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +53,7 @@ public class ContactListActivity extends AppCompatActivity {
     public String ScreenUserData = null;
     public String UserContactsListData = null;
     ArrayList<HashMap<String, String>> contactList;
+    SimpleAdapter adapter;
     private ListView lv;
     AlertDialog c_dialog;
 
@@ -90,8 +91,8 @@ public class ContactListActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         dbId = extras.getString("dbId");
         getUserContactsByDbId();
-        contactList = new ArrayList<>();
         lv = (ListView) findViewById(R.id.contact_list);
+        contactList = new ArrayList<>();
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
@@ -111,8 +112,26 @@ public class ContactListActivity extends AppCompatActivity {
 
             }
         });
+
+
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            // setting onItemLongClickListener and passing the position to the function
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                           int position, long arg3) {
+                Log.e(TAG, "Long Pressed arg0!" + arg0);
+                Log.e(TAG, "Long Pressed arg1!" + arg1);
+                Log.e(TAG, "Long Pressed arg3!" + arg3);
+                Log.e(TAG, "Long Pressed position!" + position);
+                removeItemFromList(position);
+                return true;
+            }
+        });
+
         Log.e(TAG, "LIST VIEW " + UserContactsListData);
         lv.setEmptyView(findViewById(R.id.empty_list));
+
+
 
         this.addContact = (Button)this.findViewById(R.id.add_contacts_button);
         this.addContact.setOnClickListener(new View.OnClickListener() {
@@ -132,6 +151,42 @@ public class ContactListActivity extends AppCompatActivity {
 
     }
 
+    // method to remove list item
+    protected void removeItemFromList(int position) {
+        final int deletePosition = position;
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(
+                ContactListActivity.this);
+
+        alert.setTitle("Delete");
+        alert.setMessage("Do you really want to delete this contact? You will not be able to track this contact once deleted.");
+
+        // Set up the buttons
+        alert.setPositiveButton("Ok Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //contact_mobile_number = mobile_number.getText().toString();
+                //contact_name = name.getText().toString();
+                //Log.e(TAG, "Posted details " + contact_mobile_number + "#" + contact_name + "#" + dbId);
+                //insert();
+                //lv.remove(deletePosition);
+                //arr.remove(deletePosition);
+                contactList.remove(deletePosition);
+                total_contacts = total_contacts-1;
+                adapter.notifyDataSetChanged();
+                adapter.notifyDataSetInvalidated();
+            }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alert.show();
+    }
 
     /** Called to add the contact */
     public void addContact(View view) {
@@ -418,9 +473,10 @@ public class ContactListActivity extends AppCompatActivity {
             // Getting JSON Array node
             //JSONArray contacts = jsonObj.getJSONArray("users");
 
-            ListAdapter adapter = new SimpleAdapter(ContactListActivity.this, contactList,
+            adapter = new SimpleAdapter(ContactListActivity.this, contactList,
                     R.layout.list_item, new String[]{"textstring", "contact_number"},
                     new int[]{R.id.textstring, R.id.mobile_number});
+
             lv.setAdapter(adapter);
             hideLoading();
         } else if (httpAction == "updateisverified") {
