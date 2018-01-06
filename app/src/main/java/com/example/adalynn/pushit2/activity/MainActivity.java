@@ -361,11 +361,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     public void getUserDataByDbId() {
-        //String dbid = getDbIdInPref();
-        //int dbid = common_util.getDbIdInPref();
-        //int dbid = 5;
-        //dbID = dbid;
-        Log.e(TAG, "Firebase getting user data for dbid : " + dbID);
+        Log.e(TAG, "Getting user data for dbid : " + dbID);
 
         try {
             showLoading("getuserdatabydbid");

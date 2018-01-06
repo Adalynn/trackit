@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PushIT2</string>
+    <string name="app_name">TrackIt</string>
     <string name="title_main_activity">Firebase Notifications</string>
     <string name="title_activity_second">SecondActivity</string>
     <string name="show_contacts_button">Track Contacts</string>
