@@ -19,6 +19,8 @@ import android.telephony.SmsManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -61,6 +63,7 @@ public class HomeActivity extends AppCompatActivity {
     private String contact_name = "";
     private boolean request_processed = false;
     CommonUtil common_util;
+    AlertDialog c_dialog;
 
     /**
      * Id to identify a contacts permission request.
@@ -200,10 +203,7 @@ public class HomeActivity extends AppCompatActivity {
         builder.setPositiveButton("Add Contact", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                contact_mobile_number = mobile_number.getText().toString();
-                contact_name = name.getText().toString();
-                Log.e(TAG, "Posted details " + contact_mobile_number + "#" + contact_name + "#" + dbId);
-                insert();
+
             }
         });
 
@@ -214,7 +214,38 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-        builder.show();
+        //builder.show();
+
+        c_dialog = builder.create();
+        c_dialog.show();
+        c_dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Boolean wantToCloseDialog = false;
+                contact_mobile_number = mobile_number.getText().toString();
+                contact_name = name.getText().toString();
+                if(contact_mobile_number.length() == 10) {
+                    wantToCloseDialog = true;
+                    Log.e(TAG, "Posted details " + contact_mobile_number + "#" + contact_name + "#" + dbId);
+                    insert();
+                } else {
+                    Log.e(TAG, "mobile_number " + mobile_number + contact_mobile_number);
+                    Animation shake = AnimationUtils.loadAnimation(HomeActivity.this, R.anim.shake);
+                    mobile_number.startAnimation(shake);
+                    Toast.makeText(
+                            getApplicationContext(), "Please enter 10 digit mobile number",
+                            Toast.LENGTH_LONG
+                    ).show();
+                    return;
+                }
+                //c_dialog.dismiss();
+                if(wantToCloseDialog) {
+                    c_dialog.dismiss();
+                }
+            }
+        });
     }
 
     public void insert()
