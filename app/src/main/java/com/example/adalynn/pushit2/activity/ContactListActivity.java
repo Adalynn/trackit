@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -119,10 +120,6 @@ public class ContactListActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            int position, long arg3) {
-                Log.e(TAG, "Long Pressed arg0!" + arg0);
-                Log.e(TAG, "Long Pressed arg1!" + arg1);
-                Log.e(TAG, "Long Pressed arg3!" + arg3);
-                Log.e(TAG, "Long Pressed position!" + position);
                 removeItemFromList(position);
                 return true;
             }
@@ -151,6 +148,19 @@ public class ContactListActivity extends AppCompatActivity {
 
     }
 
+    public void removeContactFromUserList(String parent_id, String contact_id) {
+        try {
+            showLoading(Config.WAIT_STR_MSG);
+            new ContactListActivity.HttpAsyncTask().execute(Config.HTTP_API_URL,"removecontact", parent_id, contact_id).get(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
     // method to remove list item
     protected void removeItemFromList(int position) {
         final int deletePosition = position;
@@ -175,6 +185,8 @@ public class ContactListActivity extends AppCompatActivity {
                 total_contacts = total_contacts-1;
                 adapter.notifyDataSetChanged();
                 adapter.notifyDataSetInvalidated();
+                Map<String, Object> map = (Map<String, Object>)lv.getItemAtPosition(deletePosition);
+                removeContactFromUserList(map.get("parent_id").toString(), map.get("contact_id").toString());
             }
         });
 
@@ -502,59 +514,62 @@ public class ContactListActivity extends AppCompatActivity {
 
         } else if(httpAction == "addcontacts") {
 
-        Log.e(TAG, "Add Contact Response  : " + result);
+            Log.e(TAG, "Add Contact Response  : " + result);
 
-        try {
-            JSONObject jsonObj = new JSONObject(result);
-            Log.e(TAG, "Add Contact Response contact_added : " + jsonObj.getString("contact_added"));
-            if(jsonObj.getString("contact_added") == "true"){
-                Toast.makeText(getApplicationContext(), "Contact Added Successfully", Toast.LENGTH_SHORT).show();
+            try {
+                JSONObject jsonObj = new JSONObject(result);
+                Log.e(TAG, "Add Contact Response contact_added : " + jsonObj.getString("contact_added"));
+                if(jsonObj.getString("contact_added") == "true"){
+                    Toast.makeText(getApplicationContext(), "Contact Added Successfully", Toast.LENGTH_SHORT).show();
 
-                // Send verification code to contact using sms
-                //String send_sms_on = jsonObj.getString("contact_number");
-                String send_sms_on = "5556";
-                String verification_code = jsonObj.getString("verification_code");
-                String app_name = Config.APP_NAME;
-                String app_url = Config.APP_URL;
-                String text_message = user_mobile + " want to connect with you on " + app_name;
-                text_message += " send the verification code ";
-                text_message += verification_code;
-                text_message += " to the user for more info on " + app_name + " visit " + app_url;
-                Log.e(TAG, "Message send to the user : " + text_message);
+                    // Send verification code to contact using sms
+                    //String send_sms_on = jsonObj.getString("contact_number");
+                    String send_sms_on = "5556";
+                    String verification_code = jsonObj.getString("verification_code");
+                    String app_name = Config.APP_NAME;
+                    String app_url = Config.APP_URL;
+                    String text_message = user_mobile + " want to connect with you on " + app_name;
+                    text_message += " send the verification code ";
+                    text_message += verification_code;
+                    text_message += " to the user for more info on " + app_name + " visit " + app_url;
+                    Log.e(TAG, "Message send to the user : " + text_message);
 
 
-                /**
-                 Check for sms sending permission if granted then send sms else request for permission
-                 */
-                if(Build.VERSION.SDK_INT >= 23) {
-                    Log.e(TAG, "Checkingfor the permissions  : "+ Build.VERSION.SDK_INT);
-                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-                        // Semd SMS permission has not been granted.
-                        Log.e(TAG, "Checkingfor the permissions not granted: "+ Build.VERSION.SDK_INT);
-                        requestSmsPermission();
+                    /**
+                     Check for sms sending permission if granted then send sms else request for permission
+                     */
+                    if(Build.VERSION.SDK_INT >= 23) {
+                        Log.e(TAG, "Checkingfor the permissions  : "+ Build.VERSION.SDK_INT);
+                        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                            // Semd SMS permission has not been granted.
+                            Log.e(TAG, "Checkingfor the permissions not granted: "+ Build.VERSION.SDK_INT);
+                            requestSmsPermission();
+                        }
+
                     }
+                    sendSMS(send_sms_on, text_message);
 
+                    total_contacts = total_contacts+1;
+
+                    Intent refresh = new Intent(this, ContactListActivity.class);
+                    String message = "Sending some data";
+                    refresh.putExtra("data", message);
+                    refresh.putExtra("dbId", dbId);
+                    startActivity(refresh);
+                    finish(); //finish Activity.
+
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Contact Already Added", Toast.LENGTH_SHORT).show();
                 }
-                sendSMS(send_sms_on, text_message);
-
-                total_contacts = total_contacts+1;
-
-                Intent refresh = new Intent(this, ContactListActivity.class);
-                String message = "Sending some data";
-                refresh.putExtra("data", message);
-                refresh.putExtra("dbId", dbId);
-                startActivity(refresh);
-                finish(); //finish Activity.
-
-
-            } else {
-                Toast.makeText(getApplicationContext(), "Contact Already Added", Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+            hideLoading();
+        } else if(httpAction == "removecontact") {
+            Log.e(TAG, "Remove Contact " + result);
+            hideLoading();
         }
-        hideLoading();
-    }
     }
 
     class HttpAsyncTask extends AsyncTask<String, String, String> {
@@ -584,6 +599,9 @@ public class ContactListActivity extends AppCompatActivity {
                 url += "?action="+params[1]+"&dbid="+dbId+"&contact_number="+contact_mobile_number+"&contact_name="+contact_name;
             }
 
+            if(params[1] == "removecontact") {
+                url += "?action="+params[1]+"&parent_id="+params[2]+"&contact_id="+params[3];
+            }
 
             Log.e(TAG, "Firebase req url: " + url);
 
