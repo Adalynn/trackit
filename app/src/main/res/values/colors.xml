@@ -10,5 +10,6 @@
     <color name="colorAccentOld">#FF4081</color>
     <color name="colorScreenBackGround">#fec225</color>
     <color name="colorScreenBackGroundWhite">#ffffff</color>
+    <color name="text_shadow">#b6353d</color>
 
 </resources>

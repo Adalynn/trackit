@@ -56,6 +56,7 @@ public class HomeActivity extends AppCompatActivity {
     private String TAG = HomeActivity.class.getSimpleName();
     public Button showContact;
     public Button addContact;
+    public Button shareAppBtn;
     public String head_text;
     public String sub_text;
     public int total_contacts = 0;
@@ -108,14 +109,28 @@ public class HomeActivity extends AppCompatActivity {
         }
 
 
-        head_text = "Dude Finder";
+
+        head_text = "Free Tracking";
         TextView txtView1 = (TextView)findViewById(R.id.textView1);
         txtView1.setText(head_text);
 
-        sub_text = "Add your dude in the contact list and start tracking them at the same moment, this is going to be an amazing start!";
+        sub_text = "Add contacts and start tracking them at the same moment, you can also share this to let other users join by clicking the button below!";
         TextView txtView2= (TextView)findViewById(R.id.textView2);
         txtView2.setText(sub_text);
 
+
+        this.shareAppBtn = (Button)this.findViewById(R.id.share_btn);
+        this.shareAppBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+            String text_message = "Get free tracking of your contacts connect with you on " + Config.APP_NAME;
+            text_message += " for more info on " + Config.APP_NAME + " visit " + Config.APP_URL;
+            Intent share = new Intent(Intent.ACTION_SEND);
+            share.setType("text/plain");
+            share.putExtra(Intent.EXTRA_TEXT, text_message);
+            startActivity(Intent.createChooser(share, "Share using"));
+            }
+        });
 
         /* Show Contact Button */
         this.showContact = (Button)this.findViewById(R.id.show_contacts_btn);
