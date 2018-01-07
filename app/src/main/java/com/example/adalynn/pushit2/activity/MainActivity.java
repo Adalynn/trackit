@@ -2,6 +2,7 @@ package com.example.adalynn.pushit2.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +33,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.adalynn.pushit2.app.CommonUtil;
+import com.example.adalynn.pushit2.service.MyLocationService;
 import com.example.adalynn.pushit2.util.AppSignatureHelper;
 import com.example.adalynn.pushit2.util.HttpHandler;
 import com.example.adalynn.pushit2.util.User;
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private static final String TAG = MainActivity.class.getSimpleName() + " PUSHIT : ";
 
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
+
 //    private TextView txtRegId, txtMessage;
 
     boolean isFirstTime = true;
@@ -71,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     CommonUtil common_util;
     ProgressDialog dialog;
     User user;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +89,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 //        if (!appSignatures.isEmpty()) {
 //            Log.e(TAG, appSignatures.get(0));
 //        }
+
+
+
+
+//        broadcastReceiver = new BroadcastReceiver() {
+//
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                Log.e(TAG, "Received SomeThing");
+//                // checking for type intent filter
+//                if (intent.getAction().equals(Config.LOCATION_UPDATE)) {
+//                    Log.e(TAG, "Location updated sucessfully");
+//                } else {
+//                    Log.e(TAG, "Some broadcasting happened");
+//                }
+//            }
+//        };
+
 
         common_util = new CommonUtil();
         dbID = common_util.getDbIdInPref(getApplicationContext());
@@ -101,7 +124,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if ( checkForPermissions( new String[]{android.Manifest.permission.READ_PHONE_STATE,
                                 android.Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS,
                                 Manifest.permission.READ_CONTACTS,
-                                Manifest.permission.WRITE_CONTACTS},
+                                Manifest.permission.WRITE_CONTACTS,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION},
                         Config.ASK_MULTIPLE_PERMISSION_REQUEST_CODE, R.id.main_layout) ) {
                     // DO YOUR STUFF
                     Log.e(TAG, "All permissions granted");
@@ -121,182 +146,44 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         } else {
             Log.e(TAG, "dbID is " + dbID + " user is already registered going to user home screen");
             /*
-            * Get db id verification status if verified than go to home screen else
+            * User is not registered yet going to save the user.
+            * First check if app has the permission to read the phone state or not
+            * if not request for the permission here.
             * */
-            showLoading(Config.WAIT_STR_MSG);
-
-            /*
-            * From here get the user data from db now using dbid
-            * */
-            getUserDataByDbId();
-        }
-
-/*
-
-        fbID = getFbIdInPref();
-
-        if (fbID == null) {
-
-            showLoading("Waiting for FBID");
-
-            mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-
-                @Override
-                public void onReceive(Context context, Intent intent) {
-
-                    // checking for type intent filter
-                    if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
-                        // gcm successfully registered
-                        // now subscribe to `global` topic to receive app wide notifications
-                        FirebaseMessaging.getInstance().subscribeToTopic(Config.TOPIC_GLOBAL);
-                        Log.e(TAG, "New user registered at firebase");
-                        //displayFirebaseRegId("Firebase displayFirebaseRegId called from mRegistrationBroadcastReceiver");
-
-                        showLoading("Setting up new user");
-                        fbID = getFbIdInPref();
-                        saveUserDataByFbId();
-                    } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
-                        // new push notification is received
-
-                        String message = intent.getStringExtra("message");
-                        //Toast.makeText(getApplicationContext(), "PUSH_NOTIFICATION", Toast.LENGTH_LONG).show();
-                        Toast.makeText(getApplicationContext(), "Push notification: " + message, Toast.LENGTH_LONG).show();
-                        //txtMessage.setText(message);
-                    }
+            Log.e(TAG, "Build.VERSION.SDK_INT is "+Build.VERSION.SDK_INT);
+            if (Build.VERSION.SDK_INT >= 23) {
+                Log.e(TAG, "Checking for runtime permissions for the Build.VERSION.SDK_INT "+Build.VERSION.SDK_INT);
+                if ( checkForPermissions( new String[]{android.Manifest.permission.READ_PHONE_STATE,
+                                android.Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS,
+                                Manifest.permission.READ_CONTACTS,
+                                Manifest.permission.WRITE_CONTACTS,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION},
+                        Config.ASK_MULTIPLE_PERMISSION_REQUEST_CODE, R.id.main_layout) ) {
+                    // DO YOUR STUFF
+                    Log.e(TAG, "All permissions granted");
+                    getUserDataByDbId();
+                } else {
+                    Log.e(TAG, "Waiting for permissions granting");
+                    Toast.makeText(
+                            getApplicationContext(), "All required permissions not granted.",
+                            Toast.LENGTH_LONG
+                    ).show();
                 }
-            };
-        } else {
-            showLoading("Waiting for FBID");
-            if (!TextUtils.isEmpty(fbID)) {
-                isFirstTime = false;
-                Log.e(TAG, "User is coming nth time not a new user fbid already set" + "SDK_INT " + Build.VERSION.SDK_INT);
-
-                String dbid = getDbIdInPref();
-                Log.e(TAG, "dbID " + dbid);
-                if(Build.VERSION.SDK_INT >= 23) {
-                    CommonUtil common_util = new CommonUtil();
-                    if(!common_util.hasPermission(this, Config.READ_PHONE_STATE_PERMISSION)){
-                        hideLoading();
-                        common_util.requestPermission(MainActivity.this, Config.READ_PHONE_STATE_PERMISSION);
-                    } else {
-
-                        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-                        //tm.isD
-                        try {
-                            String line1 = tm.getLine1Number();
-                        } catch (Exception e) {
-                            Log.e(TAG, "CAME IN EXCEPTION tm " + e.getMessage());
-                        }
-                    }
-                }
-*/
-
-//                String number = tm.getLine1Number();
-//                Log.e(TAG, "MOBILE NUMBER " + number);
-
-                /* get dbid from shared prefrences and then request the data from php
-                if shared prefrences dbid is null then it means this fbid is not saved in db yet
-                so save this fbid ib db and then confirm that sahred prefrences contains the dbid now
-                */
-//                String dbid = getDbIdInPref();
-
-//                if (dbid !=null) {
-//                    // get data from db now using dbid
-//                    Log.e(TAG, "Got db id " + dbid + " in sf");
-//                    dbID = dbid;
-//                    /*
-//                    * From here get the user data from db now using dbid
-//                    * */
-//                    getUserDataByDbId();
-//                } else {
-//                    // save data in db and dbid in shared prefrences
-//                    Log.e(TAG, "Got db id null in sf");
-//                    /*
-//                        Check if data exists in db or not using fbid if so then getdata using fbid
-//                        also store the dbid in prefrences
-//                    */
-//                    storeDbIdInPrefByFbId();
-//                }
-        /*
             } else {
-                Log.e(TAG, "As per understading i should not come here");
+                Log.e(TAG, "Not Checking for runtime permissions as the Build.VERSION.SDK_INT "+Build.VERSION.SDK_INT + " is older");
+                /*
+                * Get db id verification status if verified than go to home screen else
+                * */
+                    showLoading(Config.WAIT_STR_MSG);
+
+                /*
+                * From here get the user data from db now using dbid
+                * */
+                getUserDataByDbId();
             }
-//            saveUserDataByFbId();
         }
-        */
-
-//        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//
-//                // checking for type intent filter
-//                if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
-//                    // gcm successfully registered
-//                    // now subscribe to `global` topic to receive app wide notifications
-//                    FirebaseMessaging.getInstance().subscribeToTopic(Config.TOPIC_GLOBAL);
-//                    //Toast.makeText(getApplicationContext(), "REGISTRATION_COMPLETE", Toast.LENGTH_LONG).show();
-//                    displayFirebaseRegId("Firebase displayFirebaseRegId called from mRegistrationBroadcastReceiver");
-//                } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
-//                    // new push notification is received
-//
-//                    String message = intent.getStringExtra("message");
-//                    //Toast.makeText(getApplicationContext(), "PUSH_NOTIFICATION", Toast.LENGTH_LONG).show();
-//                    Toast.makeText(getApplicationContext(), "Push notification: " + message, Toast.LENGTH_LONG).show();
-//                    //txtMessage.setText(message);
-//                }
-//            }
-//        };
-//
-//        displayFirebaseRegId("Firebase displayFirebaseRegId called from outside");
-//
-//
-//        if (!isFirstTime) {
-//
-//            Log.e(TAG, "Firebase reg fbid already set!");
-//            /* get dbid from shared prefrences and then request the data from php
-//            if shared prefrences dbid is null then it means this fbid is not saved in db yet
-//            so save this fbid ib db and then confirm that sahred prefrences contains the dbid now
-//            */
-//            String dbid = getDbIdInPref();
-//
-//            if (dbid !=null) {
-//                // get data from db now using dbid
-//                Log.e(TAG, "Firebase reg id: Got db id " + dbid + " in sf");
-//                dbID = dbid;
-//                /*
-//                * From here get the user data from db now using dbid
-//                * */
-//                getUserDataByDbId();
-//            } else {
-//                // save data in db and dbid in shared prefrences
-//                Log.e(TAG, "Firebase reg id: Got db id null in sf");
-//                /*
-//                    Check if data exists in db or not using fbid if so then getdata using fbid
-//                    also store the dbid in prefrences
-//                */
-//                storeDbIdInPrefByFbId();
-//            }
-//
-//        } else {
-//            /* Save fbid in db and its db id in shared prefrences */
-//            Log.e(TAG, "Firebase reg id: This is first time" + fbID);
-//
-//            /*
-//            * If FbId is null might be it is registering at firbase end so please wait here till the fbId is
-//            * null once the fbId is set then save it in db
-//            * */
-//
-//
-//            if(fbID == null) {
-//                Log.e(TAG, "Waiting for FbID to get set" + fbID);
-//            }
-//
-//            Log.e(TAG, "fbID get set in shared prefrences now fbid : " + fbID);
-//            saveUserDataByFbId();
-//        }
-
     }
-
 
     public boolean checkForPermissions(final String[] permissions, final int permRequestCode, int msgResourceId) {
         final List<String> permissionsNeeded = new ArrayList<>();
@@ -319,27 +206,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                                     Config.ASK_MULTIPLE_PERMISSION_REQUEST_CODE);
                         }
                     }).show();
-                    //final AlertDialog dialog = AlertDialog.newInstance( getResources().getString(R.string.permission_title), getResources().getString(msgResourceId) );
-
-                    /*final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.show();
-                    // Set up the buttons
-                    builder.setPositiveButton("Verify Contact", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //Do nothing here because we override this button later to change the close behaviour.
-                            //However, we still need this because on older versions of Android unless we
-                            //pass a handler the button doesn't get instantiated
-                        }
-                    });
-
-                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });*/
-
                 } else {
                     Log.e(TAG, "Requesting Permissions : " + perm);
                     // add the request.
@@ -551,28 +417,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // register GCM registration complete receiver
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(Config.REGISTRATION_COMPLETE));
-
-        // register new push message receiver
-        // by doing this, the activity will be notified each time a new message arrives
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(Config.PUSH_NOTIFICATION));
-
-        // clear the notification area when the app is opened
-        NotificationUtils.clearNotifications(getApplicationContext());
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        super.onPause();
-    }
 
     /**
      * Callback received when a permissions request has been completed.
@@ -595,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 //Snackbar.make(mLayout, R.string.permissions_not_granted,Snackbar.LENGTH_SHORT).show();
             }
             // END_INCLUDE(permission_result)
-
         }
 
         if (requestCode == Config.READ_PHONE_STATE_PERMISSION) {
@@ -658,9 +501,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             } else {
                 Log.e(TAG, "Not starting SignupActivity due to permissions issue");
             }
-
-
         }
+
+
+//        if(requestCode == Config.ASK_FINE_COARSE_LOCATION) {
+//            if( grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+//                // Do location updates here
+//            }else {
+//                runtime_permissions();
+//            }
+//        }
     }
 
     class HttpAsyncTask extends AsyncTask<String, String, String> {
@@ -717,5 +567,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
-
+//    private boolean runtime_permissions() {
+//        if(Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+//
+//            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},Config.ASK_FINE_COARSE_LOCATION);
+//
+//            return true;
+//        }
+//        return false;
+//    }
 }

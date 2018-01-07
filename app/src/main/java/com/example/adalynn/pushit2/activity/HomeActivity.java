@@ -2,9 +2,11 @@ package com.example.adalynn.pushit2.activity;
 
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -32,6 +34,7 @@ import com.example.adalynn.pushit2.Manifest;
 import com.example.adalynn.pushit2.R;
 import com.example.adalynn.pushit2.app.CommonUtil;
 import com.example.adalynn.pushit2.app.Config;
+import com.example.adalynn.pushit2.service.MyLocationService;
 import com.example.adalynn.pushit2.util.HttpHandler;
 
 import org.json.JSONException;
@@ -76,11 +79,49 @@ public class HomeActivity extends AppCompatActivity {
     private View mLayout;
     private RelativeLayout home_layout;
 
+    private BroadcastReceiver broadcastReceiver;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(broadcastReceiver == null){
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+
+                    //textView.append("\n" +intent.getExtras().get("coordinates"));
+                    Log.e(TAG, "Received SomeThing" + dbId);
+                    // checking for type intent filter
+                    if (intent.getAction().equals(Config.LOCATION_UPDATE)) {
+                        Log.e(TAG, "Location updated sucessfully" + intent.getExtras().get("coordinates"));
+                        updateCordinates(String.valueOf(intent.getExtras().get("longitude")), String.valueOf(intent.getExtras().get("latitude")));
+                    } else {
+                        Log.e(TAG, "Some broadcasting happened" + intent.getExtras().get("coordinates"));
+                    }
+                }
+            };
+        }
+        registerReceiver(broadcastReceiver,new IntentFilter(Config.LOCATION_UPDATE));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(broadcastReceiver != null){
+            unregisterReceiver(broadcastReceiver);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+
+        Intent i =new Intent(getApplicationContext(),MyLocationService.class);
+        startService(i);
+
+
 
         common_util = new CommonUtil();
 
@@ -161,6 +202,20 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    public void updateCordinates(String longitude, String latitude) {
+        Log.e(TAG, "Firebase show longitude  latitude " + longitude +"#"+ latitude +"#"+ dbId);
+        try {
+            showLoading(Config.WAIT_STR_MSG);
+            new HomeHttpAsyncTask().execute(Config.HTTP_API_URL,"updatecordinates", longitude, latitude).get(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     public void showLoading(String msg) {
@@ -434,6 +489,9 @@ public class HomeActivity extends AppCompatActivity {
             hideLoading();
         } else if(httpAction == "getcontactscount") {
             hideLoading();
+        } else if(httpAction == "updatecordinates") {
+            //updatecordinates
+            Log.e(TAG, "Update Co-ordinates Response : " + result);
         }
     }
 
@@ -462,6 +520,10 @@ public class HomeActivity extends AppCompatActivity {
 
             if(params[1] == "getcontactscount") {
                 url += "?action="+params[1]+"&dbid="+dbId;
+            }
+
+            if(params[1] == "updatecordinates") {
+                url += "?action="+params[1]+"&longitude="+params[2]+"&latitude="+params[3]+"&dbid="+dbId;
             }
 
             //Log.e(TAG, "Posted details " + contact_mobile_number + "#" + contact_name + "#" + dbId);

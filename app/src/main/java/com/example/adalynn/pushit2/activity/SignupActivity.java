@@ -1,5 +1,6 @@
 package com.example.adalynn.pushit2.activity;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -8,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -51,8 +53,8 @@ public class SignupActivity extends AppCompatActivity {
 
     public Button saveUserDetails;
     String ScreenUserData = null;
-    public String action= null;
-    public String httpAction= null;
+    public String action = null;
+    public String httpAction = null;
     public String fbID = null;
     public String dbID = null;
     ProgressDialog dialog;
@@ -88,13 +90,23 @@ public class SignupActivity extends AppCompatActivity {
         common_util = new CommonUtil();
 
         Bundle extras = getIntent().getExtras();
-        action= extras.getString("action");
+        action = extras.getString("action");
 
         Log.e(TAG, "SignupActivity called with action " + action);
         Log.e(TAG, "Build Version Found : " + Build.VERSION.SDK_INT);
 
-        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+        TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             String number = tm.getLine1Number();
             //user_email = (EditText)findViewById(R.id.EditTextEmail);
             //user_email.setText(number);

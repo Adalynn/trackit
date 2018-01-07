@@ -13,6 +13,8 @@ public class Config {
     // broadcast receiver intent filters
     public static final String REGISTRATION_COMPLETE = "registrationComplete";
     public static final String PUSH_NOTIFICATION = "pushNotification";
+    public static final String LOCATION_UPDATE = "location_update";
+
 
     // id to handle the notification in the notification tray
     public static final int NOTIFICATION_ID = 100;
@@ -29,6 +31,10 @@ public class Config {
     public static final int MAX_CONTACTS_LIMIT = 5;
 
     public static final String HTTP_API_URL = "http://10.0.2.2/ecomm/landit/landit.php";
+
+    public static final int LOCATION_TRACK_INTERVAL = 3000;
+    public static final int LOCATION_TRACK_MIN_DISTANCE = 5; // Distance In Meters
+
     //public static final String HTTP_API_URL = "http://kotlinclasses.org/ecomm/landit/landit.php";
     //http://kotlinclasses.org/ecomm/landit/landit.php?action=addnewuser&mobile=9336515951
 
@@ -39,7 +45,7 @@ public class Config {
     public static final int READ_PHONE_STATE_PERMISSION = 1;
     public static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 2;
     public static final int ASK_MULTIPLE_PERMISSION_REQUEST_CODE = 3;
-
+    public static final int ASK_FINE_COARSE_LOCATION=4;
     //public static final String READ_PHONE_STATE_PERMISSION = "1";
    // READ_PHONE_STATE_PERMISSION_INT
 
