@@ -338,6 +338,7 @@ public class HomeActivity extends AppCompatActivity {
         String message = "Sending some data";
         intent.putExtra("data", message);
         intent.putExtra("dbId", dbId);
+        intent.putExtra("userMobile", user_mobile);
         Log.e(TAG, "Starting ContactListActiviy with db id : " + dbId);
         startActivity(intent);
     }
@@ -445,8 +446,8 @@ public class HomeActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Contact Added Successfully", Toast.LENGTH_SHORT).show();
 
                     // Send verification code to contact using sms
-                    //String send_sms_on = jsonObj.getString("contact_number");
-                    String send_sms_on = "5556";
+                    String send_sms_on = jsonObj.getString("contact_number");
+                    //String send_sms_on = "5556";
                     String verification_code = jsonObj.getString("verification_code");
                     String app_name = Config.APP_NAME;
                     String app_url = Config.APP_URL;
@@ -454,6 +455,7 @@ public class HomeActivity extends AppCompatActivity {
                     text_message += " send the verification code ";
                     text_message += verification_code;
                     text_message += " to the user for more info on " + app_name + " visit " + app_url;
+                    Log.e(TAG, "Message send to the user on number : " + send_sms_on);
                     Log.e(TAG, "Message send to the user : " + text_message);
                     //sendSMS(send_sms_on, text_message);
 

@@ -92,6 +92,8 @@ public class ContactListActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         dbId = extras.getString("dbId");
+        user_mobile = extras.getString("userMobile");
+
         getUserContactsByDbId();
         lv = (ListView) findViewById(R.id.contact_list);
         contactList = new ArrayList<>();
@@ -525,8 +527,8 @@ public class ContactListActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Contact Added Successfully", Toast.LENGTH_SHORT).show();
 
                     // Send verification code to contact using sms
-                    //String send_sms_on = jsonObj.getString("contact_number");
-                    String send_sms_on = "5556";
+                    String send_sms_on = jsonObj.getString("contact_number");
+                    //String send_sms_on = "5556";
                     String verification_code = jsonObj.getString("verification_code");
                     String app_name = Config.APP_NAME;
                     String app_url = Config.APP_URL;
@@ -534,6 +536,7 @@ public class ContactListActivity extends AppCompatActivity {
                     text_message += " send the verification code ";
                     text_message += verification_code;
                     text_message += " to the user for more info on " + app_name + " visit " + app_url;
+                    Log.e(TAG, "Message send to the user on number : " + send_sms_on);
                     Log.e(TAG, "Message send to the user : " + text_message);
 
 

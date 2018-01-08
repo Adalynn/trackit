@@ -30,12 +30,13 @@ public class Config {
 
     public static final int MAX_CONTACTS_LIMIT = 5;
 
-    public static final String HTTP_API_URL = "http://10.0.2.2/ecomm/landit/landit.php";
+
 
     public static final int LOCATION_TRACK_INTERVAL = 3000;
     public static final int LOCATION_TRACK_MIN_DISTANCE = 5; // Distance In Meters
 
-    //public static final String HTTP_API_URL = "http://kotlinclasses.org/ecomm/landit/landit.php";
+    //public static final String HTTP_API_URL = "http://10.0.2.2/ecomm/landit/landit.php";
+    public static final String HTTP_API_URL = "http://kotlinclasses.org/ecomm/landit/landit.php";
     //http://kotlinclasses.org/ecomm/landit/landit.php?action=addnewuser&mobile=9336515951
 
 
